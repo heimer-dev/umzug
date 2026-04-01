@@ -33,6 +33,9 @@ const modalBackdrop = document.getElementById('modal-backdrop');
 const cancelEditBtn = document.getElementById('cancel-edit');
 const formTitle = document.getElementById('form-title');
 const printAllBtn = document.getElementById('print-all-btn');
+const pdfBtn = document.getElementById('pdf-btn');
+const pdfAllBtn = document.getElementById('pdf-all-btn');
+const modalTitle = document.getElementById('modal-title');
 
 // ===== Init =====
 loadBoxes();
@@ -65,14 +68,23 @@ async function onSubmit(e) {
     contents: document.getElementById('contents').value.trim(),
     notes:    document.getElementById('notes').value.trim(),
   };
+
+  let newBoxId = null;
   if (id) {
     await fetch(`/api/boxes/${id}`, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
   } else {
-    await fetch('/api/boxes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const res = await fetch('/api/boxes', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+    const created = await res.json();
+    newBoxId = created.id;
   }
   form.reset();
   cancelEdit();
   await loadBoxes();
+
+  // Auto-Popup: direkt nach Anlegen Label anzeigen
+  if (newBoxId) {
+    showPdfModal(newBoxId, true);
+  }
 }
 
 async function deleteBox(id) {
@@ -104,20 +116,35 @@ function cancelEdit() {
   cancelEditBtn.style.display = 'none';
 }
 
-// ===== Print =====
-async function printLabel(id) {
+// ===== PDF Modal =====
+async function showPdfModal(id, isNew = false) {
   const box = boxes.find(b => b.id === id);
   if (!box) return;
   const res = await fetch(`/api/boxes/${id}/qr`);
   const { qr, url } = await res.json();
+
+  modalTitle.textContent = isNew ? '✓ Kiste angelegt – Label herunterladen' : '📄 Label-Vorschau';
   printArea.innerHTML = buildLabelHTML(box, qr, url);
+  pdfBtn.href = `/api/boxes/${id}/pdf`;
+  pdfBtn.download = `label-${box.label.replace(/[^a-z0-9]/gi, '_').slice(0, 20)}.pdf`;
+  pdfBtn.classList.remove('hidden');
+  pdfAllBtn.classList.add('hidden');
   printModal.classList.remove('hidden');
+}
+
+// Einzelnes Label anzeigen (vom Karten-Button)
+function printLabel(id) {
+  showPdfModal(id, false);
 }
 
 async function printAll() {
   const filtered = getFiltered();
-  if (!filtered.length) { alert('Keine Kisten zum Drucken.'); return; }
-  printArea.innerHTML = '<p style="text-align:center;color:#64748B;padding:16px">Lade QR-Codes...</p>';
+  if (!filtered.length) { alert('Keine Kisten zum Herunterladen.'); return; }
+
+  modalTitle.textContent = '📄 Alle Labels – Vorschau';
+  printArea.innerHTML = '<p style="text-align:center;color:#64748B;padding:16px">Lade Vorschau...</p>';
+  pdfBtn.classList.add('hidden');
+  pdfAllBtn.classList.add('hidden');
   printModal.classList.remove('hidden');
 
   const labels = await Promise.all(filtered.map(async box => {
@@ -126,6 +153,12 @@ async function printAll() {
     return buildLabelHTML(box, qr, url);
   }));
   printArea.innerHTML = labels.join('');
+
+  // Einzel-PDF-Links pro Label einblenden (im HTML selbst)
+  filtered.forEach(box => {
+    const el = document.getElementById(`pdf-link-${box.id}`);
+    if (el) el.href = `/api/boxes/${box.id}/pdf`;
+  });
 }
 
 function buildLabelHTML(box, qrDataUrl, url) {
@@ -169,7 +202,11 @@ function buildLabelHTML(box, qrDataUrl, url) {
           ${notesHtml}
         </div>
       </div>
-      <div class="print-label-url">🔗 ${escHtml(url)}</div>
+      <div class="print-label-bottom">
+        <span class="print-label-url">🔗 ${escHtml(url)}</span>
+        <a id="pdf-link-${escHtml(box.id)}" href="/api/boxes/${escHtml(box.id)}/pdf"
+           class="btn btn-sm btn-outline" download>⬇ PDF</a>
+      </div>
     </div>
   `;
 }

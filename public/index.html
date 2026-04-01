@@ -104,17 +104,18 @@
     </section>
   </main>
 
-  <!-- Print overlay -->
+  <!-- PDF Modal -->
   <div id="print-modal" class="modal hidden">
     <div class="modal-backdrop" id="modal-backdrop"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h2>&#128438; Label-Vorschau</h2>
+        <h2 id="modal-title">&#128438; Label-Vorschau</h2>
         <button class="modal-close" id="modal-close">&times;</button>
       </div>
       <div id="print-area"></div>
       <div class="modal-footer">
-        <button class="btn btn-primary" onclick="window.print()">&#128438; Drucken</button>
+        <a id="pdf-btn" href="#" class="btn btn-primary" download>&#11015; Als PDF herunterladen</a>
+        <a id="pdf-all-btn" href="#" class="btn btn-outline hidden" download>&#11015; Alle als PDF</a>
         <button class="btn btn-secondary" id="modal-close-btn">Schliessen</button>
       </div>
     </div>

@@ -3,68 +3,89 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Umzugskarton Labels</title>
+  <title>Berufskolleg – Umzug Labels</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>&#128230; Umzugskarton Labels</h1>
-    <p class="subtitle">QR-Code Labels erstellen, drucken und scannen</p>
+    <div class="header-inner">
+      <div class="header-logo">&#127979;</div>
+      <div>
+        <h1>Berufskolleg – Umzug</h1>
+        <p class="subtitle">Kisten-Labels mit QR-Code erstellen, drucken und scannen</p>
+      </div>
+    </div>
   </header>
 
   <main>
     <!-- Form -->
     <section class="card form-card">
-      <h2 id="form-title">Neuen Karton anlegen</h2>
+      <h2 id="form-title">&#10133; Neue Kiste anlegen</h2>
       <form id="box-form">
         <input type="hidden" id="edit-id">
 
         <div class="form-row">
           <div class="form-group">
             <label for="label">Bezeichnung / Nummer</label>
-            <input type="text" id="label" placeholder="z.B. Karton 1 - Bücher" required>
+            <input type="text" id="label" placeholder="z.B. Kiste 1 – Mathematik Bücher" required>
           </div>
           <div class="form-group">
-            <label for="color">Raumfarbe</label>
+            <label for="color">Fach (Farbe)</label>
             <select id="color" required>
-              <option value="">-- Raum wählen --</option>
-              <option value="wohnzimmer">&#127968; Wohnzimmer</option>
-              <option value="schlafzimmer">&#128716; Schlafzimmer</option>
-              <option value="kueche">&#127859; Küche</option>
-              <option value="bad">&#128704; Bad</option>
-              <option value="kinderzimmer">&#129981; Kinderzimmer</option>
-              <option value="buero">&#128188; Büro / Arbeitszimmer</option>
-              <option value="keller">&#128348; Keller / Lager</option>
-              <option value="dachboden">&#127968; Dachboden</option>
-              <option value="flur">&#128682; Flur / Eingang</option>
-              <option value="sonstiges">&#128230; Sonstiges</option>
+              <option value="">-- Fach wählen --</option>
+              <optgroup label="Allgemeinbildende Fächer">
+                <option value="mathematik">&#128208; Mathematik</option>
+                <option value="deutsch">&#128214; Deutsch</option>
+                <option value="englisch">&#127757; Englisch / Fremdsprachen</option>
+                <option value="geschichte">&#128220; Geschichte / Sozialkunde</option>
+                <option value="religion_ethik">&#127981; Religion / Ethik</option>
+                <option value="sport">&#127939; Sport</option>
+                <option value="kunst">&#127912; Kunst / Musik</option>
+              </optgroup>
+              <optgroup label="Berufliche Fächer">
+                <option value="bwl">&#128202; BWL / Wirtschaft</option>
+                <option value="informatik">&#128187; Informatik</option>
+                <option value="technik">&#128295; Technik</option>
+                <option value="physik">&#9889; Physik</option>
+                <option value="chemie">&#9879; Chemie</option>
+                <option value="biologie">&#127807; Biologie</option>
+              </optgroup>
+              <optgroup label="Sonstiges">
+                <option value="verwaltung">&#128203; Verwaltung / Büro</option>
+                <option value="sonstiges">&#128230; Sonstiges</option>
+              </optgroup>
             </select>
           </div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
-            <label for="old_room">Alter Raum (kommt von)</label>
-            <input type="text" id="old_room" placeholder="z.B. Wohnzimmer Alt-Wohnung" required>
+            <label for="old_room">Aktueller Raum (kommt von)</label>
+            <input type="text" id="old_room" placeholder="z.B. A 201 oder Lehrerzimmer" required>
           </div>
           <div class="form-group">
-            <label for="new_room">Neuer Raum (kommt nach)</label>
-            <input type="text" id="new_room" placeholder="z.B. Wohnzimmer Neue Wohnung" required>
+            <label for="new_room">Zielraum (geht nach)</label>
+            <input type="text" id="new_room" placeholder="z.B. B 115 oder Neubau EG" required>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label for="teacher">Lehrkraft / Verantwortlich</label>
+          <input type="text" id="teacher" placeholder="z.B. Fr. Müller oder Hr. Schmidt">
         </div>
 
         <div class="form-group">
           <label for="contents">Inhalt (eine Zeile pro Gegenstand)</label>
-          <textarea id="contents" rows="4" placeholder="Bücher&#10;Aktenordner&#10;Schreibtischlampe"></textarea>
+          <textarea id="contents" rows="4" placeholder="Schulbücher Klasse 10&#10;Taschenrechner (30 Stück)&#10;Whiteboard-Marker"></textarea>
         </div>
 
         <div class="form-group">
-          <label for="notes">Hinweise / Notizen</label>
-          <input type="text" id="notes" placeholder="z.B. Zerbrechlich! Oben lassen.">
+          <label for="notes">Hinweise</label>
+          <input type="text" id="notes" placeholder="z.B. Zerbrechlich! Nicht stapeln.">
         </div>
 
         <div class="form-buttons">
-          <button type="submit" class="btn btn-primary">&#10003; Karton speichern</button>
+          <button type="submit" class="btn btn-primary">&#10003; Kiste speichern</button>
           <button type="button" id="cancel-edit" class="btn btn-secondary" style="display:none">Abbrechen</button>
         </div>
       </form>
@@ -73,7 +94,7 @@
     <!-- Box list -->
     <section class="card">
       <div class="list-header">
-        <h2>Kartons (&#8203;<span id="box-count">0</span>)</h2>
+        <h2>Kisten (&#8203;<span id="box-count">0</span>)</h2>
         <div class="list-actions">
           <input type="text" id="search" placeholder="&#128269; Suchen..." class="search-input">
           <button class="btn btn-outline" id="print-all-btn">&#128438; Alle drucken</button>
@@ -88,7 +109,7 @@
     <div class="modal-backdrop" id="modal-backdrop"></div>
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Label Vorschau</h2>
+        <h2>&#128438; Label-Vorschau</h2>
         <button class="modal-close" id="modal-close">&times;</button>
       </div>
       <div id="print-area"></div>

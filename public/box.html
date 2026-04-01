@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Karton Details</title>
+  <title>Kisten-Details</title>
   <link rel="stylesheet" href="/style.css">
 </head>
 <body class="box-detail-page">
   <div id="detail-loading" class="detail-loading">
     <div class="spinner"></div>
-    <p>Lade Karton-Daten...</p>
+    <p>Lade Kisten-Daten...</p>
   </div>
 
   <div id="detail-content" class="hidden">
@@ -18,22 +18,28 @@
         <div class="detail-icon" id="detail-icon"></div>
         <div>
           <h1 id="detail-label"></h1>
-          <p class="detail-room-tag" id="detail-room-tag"></p>
+          <p class="detail-room-tag" id="detail-fach-tag"></p>
         </div>
       </div>
     </div>
 
     <main class="detail-main">
+
       <div class="detail-cards">
         <div class="detail-card">
-          <div class="detail-card-label">&#128194; Kommt aus</div>
+          <div class="detail-card-label">&#128194; Aktueller Raum</div>
           <div class="detail-card-value" id="detail-old-room"></div>
         </div>
         <div class="detail-card arrow-card">&#8594;</div>
         <div class="detail-card">
-          <div class="detail-card-label">&#127968; Geht nach</div>
+          <div class="detail-card-label">&#127979; Zielraum</div>
           <div class="detail-card-value" id="detail-new-room"></div>
         </div>
+      </div>
+
+      <div class="detail-section" id="teacher-section">
+        <h2>&#128105;&#8205;&#127979; Lehrkraft / Verantwortlich</h2>
+        <p id="detail-teacher" class="detail-teacher-text"></p>
       </div>
 
       <div class="detail-section" id="contents-section">
@@ -54,23 +60,28 @@
 
   <div id="detail-error" class="hidden detail-error">
     <div class="error-icon">&#10060;</div>
-    <h2>Karton nicht gefunden</h2>
-    <p>Dieser QR-Code ist nicht mehr gültig oder der Karton wurde gelöscht.</p>
+    <h2>Kiste nicht gefunden</h2>
+    <p>Dieser QR-Code ist nicht mehr gültig oder die Kiste wurde gelöscht.</p>
     <a href="/" class="btn btn-primary">&#8592; Zur Übersicht</a>
   </div>
 
   <script>
     const COLORS = {
-      wohnzimmer:   { bg: '#3B82F6', icon: '&#127968;', name: 'Wohnzimmer' },
-      schlafzimmer: { bg: '#8B5CF6', icon: '&#128716;', name: 'Schlafzimmer' },
-      kueche:       { bg: '#F97316', icon: '&#127859;', name: 'Küche' },
-      bad:          { bg: '#06B6D4', icon: '&#128704;', name: 'Bad' },
-      kinderzimmer: { bg: '#22C55E', icon: '&#129981;', name: 'Kinderzimmer' },
-      buero:        { bg: '#EAB308', icon: '&#128188;', name: 'Büro / Arbeitszimmer' },
-      keller:       { bg: '#6B7280', icon: '&#128348;', name: 'Keller / Lager' },
-      dachboden:    { bg: '#A16207', icon: '&#127968;', name: 'Dachboden' },
-      flur:         { bg: '#EC4899', icon: '&#128682;', name: 'Flur / Eingang' },
-      sonstiges:    { bg: '#64748B', icon: '&#128230;', name: 'Sonstiges' },
+      mathematik:     { bg: '#2563EB', icon: '&#128208;', name: 'Mathematik' },
+      deutsch:        { bg: '#DC2626', icon: '&#128214;', name: 'Deutsch' },
+      englisch:       { bg: '#16A34A', icon: '&#127757;', name: 'Englisch / Fremdsprachen' },
+      geschichte:     { bg: '#854D0E', icon: '&#128220;', name: 'Geschichte / Sozialkunde' },
+      religion_ethik: { bg: '#4338CA', icon: '&#128717;', name: 'Religion / Ethik' },
+      sport:          { bg: '#DB2777', icon: '&#127939;', name: 'Sport' },
+      kunst:          { bg: '#C026D3', icon: '&#127912;', name: 'Kunst / Musik' },
+      bwl:            { bg: '#B45309', icon: '&#128202;', name: 'BWL / Wirtschaft' },
+      informatik:     { bg: '#7C3AED', icon: '&#128187;', name: 'Informatik' },
+      technik:        { bg: '#475569', icon: '&#128295;', name: 'Technik' },
+      physik:         { bg: '#EA580C', icon: '&#9889;',   name: 'Physik' },
+      chemie:         { bg: '#0891B2', icon: '&#9879;',   name: 'Chemie' },
+      biologie:       { bg: '#0D9488', icon: '&#127807;', name: 'Biologie' },
+      verwaltung:     { bg: '#4B5563', icon: '&#128203;', name: 'Verwaltung / Büro' },
+      sonstiges:      { bg: '#64748B', icon: '&#128230;', name: 'Sonstiges' },
     };
 
     const id = location.pathname.replace('/box/', '').replace(/\/$/, '');
@@ -85,10 +96,18 @@
         document.getElementById('detail-banner').style.background = c.bg;
         document.getElementById('detail-icon').innerHTML = c.icon;
         document.getElementById('detail-label').textContent = box.label;
-        document.getElementById('detail-room-tag').textContent = c.name;
+        document.getElementById('detail-fach-tag').textContent = c.name;
         document.getElementById('detail-old-room').textContent = box.old_room;
         document.getElementById('detail-new-room').textContent = box.new_room;
-        document.title = box.label + ' – Umzug';
+        document.title = box.label + ' – Berufskolleg Umzug';
+
+        const teacherEl = document.getElementById('detail-teacher');
+        const teacherSection = document.getElementById('teacher-section');
+        if (box.teacher && box.teacher.trim()) {
+          teacherEl.textContent = box.teacher;
+        } else {
+          teacherSection.style.display = 'none';
+        }
 
         const contentsList = document.getElementById('detail-contents');
         const contentsSection = document.getElementById('contents-section');

@@ -1,6 +1,6 @@
-# Umzugskarton Labels mit QR-Code
+# Berufskolleg – Umzug Labels mit QR-Code
 
-Erstelle bunte, druckfertige Labels für Umzugskartons mit QR-Code.
+Erstelle bunte, druckfertige Kisten-Labels für den Schulumzug – mit QR-Code pro Kiste.
 
 ## Starten
 
@@ -12,39 +12,43 @@ Dann im Browser: **http://localhost:3000**
 
 ## Funktionen
 
-- **Karton anlegen** mit Bezeichnung, Alt-Raum, Neu-Raum, Inhalt, Hinweisen
-- **Bunte Labels** je nach Raum (Wohnzimmer, Küche, Bad, ...)
-- **QR-Code** auf dem Label → scannen → Detailansicht im Browser
+- **Kiste anlegen** mit Bezeichnung, Fach, Aktueller Raum, Zielraum, Lehrkraft, Inhalt, Hinweisen
+- **Bunte Labels** je nach Schulfach (15 Fächer mit eigener Farbe)
+- **QR-Code** auf dem Label → scannen → Detailansicht mit Inhalt
 - **Drucken** – einzelne Labels oder alle auf einmal
-- **Suche** durch alle Kartons
+- **Suche** durch alle Kisten (Bezeichnung, Raum, Lehrkraft, Inhalt)
+
+## Fächer und Farben
+
+| Fach | Farbe |
+|------|-------|
+| Mathematik | Blau |
+| Deutsch | Rot |
+| Englisch / Fremdsprachen | Grün |
+| Geschichte / Sozialkunde | Braun |
+| Religion / Ethik | Indigo |
+| Sport | Pink |
+| Kunst / Musik | Lila |
+| BWL / Wirtschaft | Amber |
+| Informatik | Violett |
+| Technik | Grau-Blau |
+| Physik | Orange |
+| Chemie | Cyan |
+| Biologie | Teal |
+| Verwaltung / Büro | Dunkelgrau |
+| Sonstiges | Grau |
 
 ## URL-Erkennung für QR-Codes
 
-Der QR-Code enthält die URL zur Detailseite. Die Basis-URL wird automatisch
-aus dem HTTP-Request ermittelt (funktioniert in den meisten Netzwerken).
+Die Basis-URL wird automatisch aus dem HTTP-Request ermittelt.
 
-Falls du einen Reverse Proxy oder einen festen Domain-Namen hast, trage in
-`docker-compose.yml` die Variable ein:
+Falls du einen Reverse Proxy oder einen festen Domain-Namen hast:
 
 ```yaml
+# docker-compose.yml
 environment:
-  BASE_URL: "https://umzug.meinedomain.de"
+  BASE_URL: "https://umzug.schule.de"
 ```
-
-## Raumfarben
-
-| Raum | Farbe |
-|------|-------|
-| Wohnzimmer | Blau |
-| Schlafzimmer | Lila |
-| Küche | Orange |
-| Bad | Türkis |
-| Kinderzimmer | Grün |
-| Büro | Gelb |
-| Keller / Lager | Grau |
-| Dachboden | Braun |
-| Flur / Eingang | Pink |
-| Sonstiges | Dunkelgrau |
 
 ## Daten
 

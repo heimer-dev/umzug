@@ -1,15 +1,20 @@
-// ===== Config =====
+// ===== Fach-Farben =====
 const COLORS = {
-  wohnzimmer:   { bg: '#3B82F6', icon: '🏠', name: 'Wohnzimmer' },
-  schlafzimmer: { bg: '#8B5CF6', icon: '🛌', name: 'Schlafzimmer' },
-  kueche:       { bg: '#F97316', icon: '🍳', name: 'Küche' },
-  bad:          { bg: '#06B6D4', icon: '🚿', name: 'Bad' },
-  kinderzimmer: { bg: '#22C55E', icon: '🌿', name: 'Kinderzimmer' },
-  buero:        { bg: '#EAB308', icon: '💼', name: 'Büro / Arbeitszimmer' },
-  keller:       { bg: '#6B7280', icon: '🕰', name: 'Keller / Lager' },
-  dachboden:    { bg: '#A16207', icon: '🏠', name: 'Dachboden' },
-  flur:         { bg: '#EC4899', icon: '🚪', name: 'Flur / Eingang' },
-  sonstiges:    { bg: '#64748B', icon: '📦', name: 'Sonstiges' },
+  mathematik:     { bg: '#2563EB', icon: '📐', name: 'Mathematik' },
+  deutsch:        { bg: '#DC2626', icon: '📖', name: 'Deutsch' },
+  englisch:       { bg: '#16A34A', icon: '🌍', name: 'Englisch / Fremdsprachen' },
+  geschichte:     { bg: '#854D0E', icon: '📜', name: 'Geschichte / Sozialkunde' },
+  religion_ethik: { bg: '#4338CA', icon: '🕌', name: 'Religion / Ethik' },
+  sport:          { bg: '#DB2777', icon: '🏃', name: 'Sport' },
+  kunst:          { bg: '#C026D3', icon: '🎨', name: 'Kunst / Musik' },
+  bwl:            { bg: '#B45309', icon: '📊', name: 'BWL / Wirtschaft' },
+  informatik:     { bg: '#7C3AED', icon: '💻', name: 'Informatik' },
+  technik:        { bg: '#475569', icon: '🔧', name: 'Technik' },
+  physik:         { bg: '#EA580C', icon: '⚡', name: 'Physik' },
+  chemie:         { bg: '#0891B2', icon: '🧪', name: 'Chemie' },
+  biologie:       { bg: '#0D9488', icon: '🌱', name: 'Biologie' },
+  verwaltung:     { bg: '#4B5563', icon: '📋', name: 'Verwaltung / Büro' },
+  sonstiges:      { bg: '#64748B', icon: '📦', name: 'Sonstiges' },
 };
 
 // ===== State =====
@@ -56,6 +61,7 @@ async function onSubmit(e) {
     old_room: document.getElementById('old_room').value.trim(),
     new_room: document.getElementById('new_room').value.trim(),
     color:    document.getElementById('color').value,
+    teacher:  document.getElementById('teacher').value.trim(),
     contents: document.getElementById('contents').value.trim(),
     notes:    document.getElementById('notes').value.trim(),
   };
@@ -70,7 +76,7 @@ async function onSubmit(e) {
 }
 
 async function deleteBox(id) {
-  if (!confirm('Karton wirklich löschen?')) return;
+  if (!confirm('Kiste wirklich löschen?')) return;
   await fetch(`/api/boxes/${id}`, { method: 'DELETE' });
   await loadBoxes();
 }
@@ -83,9 +89,10 @@ function editBox(id) {
   document.getElementById('old_room').value = box.old_room;
   document.getElementById('new_room').value = box.new_room;
   document.getElementById('color').value = box.color;
+  document.getElementById('teacher').value = box.teacher || '';
   document.getElementById('contents').value = box.contents;
   document.getElementById('notes').value = box.notes;
-  formTitle.textContent = 'Karton bearbeiten';
+  formTitle.textContent = '✏️ Kiste bearbeiten';
   cancelEditBtn.style.display = '';
   document.querySelector('.form-card').scrollIntoView({ behavior: 'smooth' });
 }
@@ -93,7 +100,7 @@ function editBox(id) {
 function cancelEdit() {
   form.reset();
   document.getElementById('edit-id').value = '';
-  formTitle.textContent = 'Neuen Karton anlegen';
+  formTitle.textContent = '➕ Neue Kiste anlegen';
   cancelEditBtn.style.display = 'none';
 }
 
@@ -109,8 +116,8 @@ async function printLabel(id) {
 
 async function printAll() {
   const filtered = getFiltered();
-  if (!filtered.length) { alert('Keine Kartons zum Drucken.'); return; }
-  printArea.innerHTML = '<p style="text-align:center;color:#64748B;padding:12px">Lade QR-Codes...</p>';
+  if (!filtered.length) { alert('Keine Kisten zum Drucken.'); return; }
+  printArea.innerHTML = '<p style="text-align:center;color:#64748B;padding:16px">Lade QR-Codes...</p>';
   printModal.classList.remove('hidden');
 
   const labels = await Promise.all(filtered.map(async box => {
@@ -129,22 +136,25 @@ function buildLabelHTML(box, qrDataUrl, url) {
   const notesHtml = box.notes
     ? `<div class="print-label-notes">⚠️ ${escHtml(box.notes)}</div>`
     : '';
+  const teacherHtml = box.teacher
+    ? `<div class="print-label-teacher">👩‍🏫 ${escHtml(box.teacher)}</div>`
+    : '';
   return `
     <div class="print-label">
-      <div class="print-label-header color-${escHtml(box.color)}" style="background:${c.bg}">
+      <div class="print-label-header" style="background:${c.bg}">
         <div class="print-label-header-text">
           <h2>${escHtml(box.label)}</h2>
-          <div class="room-name">${c.icon} ${c.name}</div>
+          <div class="fach-name">${c.icon} ${c.name}</div>
         </div>
         <div class="print-label-icon">${c.icon}</div>
       </div>
       <div class="print-label-rooms">
         <div class="print-label-room">
-          <div class="room-dir">📂 Kommt aus</div>
+          <div class="room-dir">📂 Aktueller Raum</div>
           <div class="room-val">${escHtml(box.old_room)}</div>
         </div>
         <div class="print-label-room">
-          <div class="room-dir">🏠 Geht nach</div>
+          <div class="room-dir">🏫 Zielraum</div>
           <div class="room-val">${escHtml(box.new_room)}</div>
         </div>
       </div>
@@ -153,6 +163,7 @@ function buildLabelHTML(box, qrDataUrl, url) {
           <img src="${qrDataUrl}" width="120" height="120" alt="QR Code">
         </div>
         <div class="print-label-info">
+          ${teacherHtml}
           <h4>Inhalt</h4>
           <ul>${contentLines}</ul>
           ${notesHtml}
@@ -176,6 +187,7 @@ function getFiltered() {
     b.label.toLowerCase().includes(q) ||
     b.old_room.toLowerCase().includes(q) ||
     b.new_room.toLowerCase().includes(q) ||
+    (b.teacher || '').toLowerCase().includes(q) ||
     b.contents.toLowerCase().includes(q)
   );
 }
@@ -188,8 +200,8 @@ function renderList() {
     boxList.innerHTML = `
       <div class="empty-state">
         <div class="empty-icon">📦</div>
-        <h3>${boxes.length ? 'Keine Treffer' : 'Noch keine Kartons'}</h3>
-        <p>${boxes.length ? 'Andere Suchbegriffe versuchen.' : 'Lege oben deinen ersten Umzugskarton an.'}</p>
+        <h3>${boxes.length ? 'Keine Treffer' : 'Noch keine Kisten'}</h3>
+        <p>${boxes.length ? 'Andere Suchbegriffe versuchen.' : 'Lege oben die erste Umzugskiste an.'}</p>
       </div>`;
     return;
   }
@@ -198,13 +210,16 @@ function renderList() {
     const c = COLORS[box.color] || COLORS.sonstiges;
     const preview = box.contents
       ? box.contents.split('\n').filter(l => l.trim()).slice(0, 3).join(' · ')
-      : '<em style="color:#94a3b8">Kein Inhalt</em>';
+      : '<em style="color:#94a3b8">Kein Inhalt angegeben</em>';
+    const teacherHtml = box.teacher
+      ? `<div class="box-teacher">👩‍🏫 ${escHtml(box.teacher)}</div>`
+      : '';
     const notesHtml = box.notes
       ? `<div class="box-notes">⚠️ ${escHtml(box.notes)}</div>`
       : '';
     return `
       <div class="box-card">
-        <div class="box-card-header color-${escHtml(box.color)}" style="background:${c.bg}">
+        <div class="box-card-header" style="background:${c.bg}">
           <div class="room-badge">${c.icon} ${c.name}</div>
           <h3>${escHtml(box.label)}</h3>
           <div class="box-icon">${c.icon}</div>
@@ -213,8 +228,9 @@ function renderList() {
           <div class="room-arrows">
             <span class="room-chip old">📂 ${escHtml(box.old_room)}</span>
             <span class="room-arrow">→</span>
-            <span class="room-chip new">🏠 ${escHtml(box.new_room)}</span>
+            <span class="room-chip new">🏫 ${escHtml(box.new_room)}</span>
           </div>
+          ${teacherHtml}
           <div class="box-contents-preview">${preview}</div>
           ${notesHtml}
         </div>

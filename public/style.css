@@ -9,20 +9,25 @@
   --text: #1E293B;
   --muted: #64748B;
   --border: #E2E8F0;
-  --primary: #3B82F6;
-  --primary-dark: #2563EB;
+  --primary: #2563EB;
+  --primary-dark: #1D4ED8;
 
-  /* Room colors */
-  --wohnzimmer:   #3B82F6;
-  --schlafzimmer: #8B5CF6;
-  --kueche:       #F97316;
-  --bad:          #06B6D4;
-  --kinderzimmer: #22C55E;
-  --buero:        #EAB308;
-  --keller:       #6B7280;
-  --dachboden:    #A16207;
-  --flur:         #EC4899;
-  --sonstiges:    #64748B;
+  /* Fach-Farben */
+  --mathematik:     #2563EB;
+  --deutsch:        #DC2626;
+  --englisch:       #16A34A;
+  --geschichte:     #854D0E;
+  --religion_ethik: #4338CA;
+  --sport:          #DB2777;
+  --kunst:          #C026D3;
+  --bwl:            #B45309;
+  --informatik:     #7C3AED;
+  --technik:        #475569;
+  --physik:         #EA580C;
+  --chemie:         #0891B2;
+  --biologie:       #0D9488;
+  --verwaltung:     #4B5563;
+  --sonstiges:      #64748B;
 }
 
 body {
@@ -34,13 +39,14 @@ body {
 
 /* ===== Header ===== */
 header {
-  background: linear-gradient(135deg, #1E40AF 0%, #3B82F6 100%);
+  background: linear-gradient(135deg, #1E3A8A 0%, #2563EB 60%, #3B82F6 100%);
   color: white;
-  padding: 24px 32px;
-  text-align: center;
+  padding: 20px 32px;
 }
-header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 4px; }
-.subtitle { opacity: 0.85; font-size: 0.95rem; }
+.header-inner { display: flex; align-items: center; gap: 16px; max-width: 1100px; margin: 0 auto; }
+.header-logo { font-size: 2.5rem; flex-shrink: 0; }
+header h1 { font-size: 1.7rem; font-weight: 800; margin-bottom: 2px; }
+.subtitle { opacity: 0.85; font-size: 0.9rem; }
 
 /* ===== Layout ===== */
 main { max-width: 1100px; margin: 0 auto; padding: 24px 16px 60px; }
@@ -162,6 +168,11 @@ textarea { resize: vertical; }
   font-size: 0.82rem; color: var(--muted); line-height: 1.5;
   max-height: 60px; overflow: hidden;
 }
+.box-teacher {
+  margin-top: 6px; margin-bottom: 4px;
+  font-size: 0.82rem; color: var(--muted);
+  font-weight: 500;
+}
 .box-notes {
   margin-top: 6px; font-size: 0.8rem;
   color: #B45309; background: #FEF3C7;
@@ -174,17 +185,22 @@ textarea { resize: vertical; }
   display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap;
 }
 
-/* Room color backgrounds */
-.color-wohnzimmer   { background: var(--wohnzimmer); }
-.color-schlafzimmer { background: var(--schlafzimmer); }
-.color-kueche       { background: var(--kueche); }
-.color-bad          { background: var(--bad); }
-.color-kinderzimmer { background: var(--kinderzimmer); }
-.color-buero        { background: var(--buero); }
-.color-keller       { background: var(--keller); }
-.color-dachboden    { background: var(--dachboden); }
-.color-flur         { background: var(--flur); }
-.color-sonstiges    { background: var(--sonstiges); }
+/* Fach-Farben (Hintergründe) */
+.color-mathematik     { background: var(--mathematik); }
+.color-deutsch        { background: var(--deutsch); }
+.color-englisch       { background: var(--englisch); }
+.color-geschichte     { background: var(--geschichte); }
+.color-religion_ethik { background: var(--religion_ethik); }
+.color-sport          { background: var(--sport); }
+.color-kunst          { background: var(--kunst); }
+.color-bwl            { background: var(--bwl); }
+.color-informatik     { background: var(--informatik); }
+.color-technik        { background: var(--technik); }
+.color-physik         { background: var(--physik); }
+.color-chemie         { background: var(--chemie); }
+.color-biologie       { background: var(--biologie); }
+.color-verwaltung     { background: var(--verwaltung); }
+.color-sonstiges      { background: var(--sonstiges); }
 
 .empty-state {
   text-align: center; padding: 60px 20px; color: var(--muted);
@@ -236,7 +252,7 @@ textarea { resize: vertical; }
 .print-label-header-text h2 {
   font-size: 1.3rem; font-weight: 800; margin-bottom: 2px;
 }
-.print-label-header-text .room-name {
+.print-label-header-text .fach-name {
   font-size: 0.8rem; opacity: 0.9; font-weight: 600; text-transform: uppercase; letter-spacing: .06em;
 }
 .print-label-icon { font-size: 3rem; opacity: 0.4; }
@@ -272,6 +288,10 @@ textarea { resize: vertical; }
   list-style: none; font-size: 0.88rem; line-height: 1.7;
 }
 .print-label-info ul li::before { content: '• '; color: var(--primary); }
+.print-label-teacher {
+  margin-bottom: 8px; font-size: 0.82rem;
+  color: #1E293B; font-weight: 600;
+}
 .print-label-notes {
   margin-top: 10px; font-size: 0.82rem;
   background: #FEF3C7; color: #92400E;
@@ -322,7 +342,8 @@ textarea { resize: vertical; }
 .detail-banner-inner { display: flex; align-items: center; gap: 18px; max-width: 640px; margin: 0 auto; }
 .detail-icon { font-size: 3.5rem; }
 .detail-banner h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 4px; }
-.detail-room-tag { opacity: 0.85; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
+.detail-room-tag,
+.detail-fach-tag { opacity: 0.85; font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: .07em; }
 
 .detail-main { max-width: 640px; margin: 0 auto; padding: 24px 16px 60px; }
 
@@ -348,6 +369,10 @@ textarea { resize: vertical; }
 }
 .contents-list li::before { content: '📦'; font-size: 1rem; }
 
+.detail-teacher-text {
+  font-size: 1rem; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 8px;
+}
 .detail-notes-text {
   background: #FEF3C7; color: #92400E;
   padding: 12px 16px; border-radius: 8px;

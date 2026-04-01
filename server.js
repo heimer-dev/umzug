@@ -23,11 +23,17 @@ db.exec(`
     old_room TEXT NOT NULL,
     new_room TEXT NOT NULL,
     color TEXT NOT NULL,
+    teacher TEXT DEFAULT '',
     contents TEXT DEFAULT '',
     notes TEXT DEFAULT '',
     created_at INTEGER DEFAULT (strftime('%s','now'))
   )
 `);
+
+// Migration: add teacher column if it doesn't exist (for existing DBs)
+try {
+  db.exec(`ALTER TABLE boxes ADD COLUMN teacher TEXT DEFAULT ''`);
+} catch (_) { /* column already exists */ }
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
@@ -49,36 +55,37 @@ app.get('/api/boxes', (req, res) => {
 // API: get single box
 app.get('/api/boxes/:id', (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
-  if (!box) return res.status(404).json({ error: 'Box not found' });
+  if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   res.json(box);
 });
 
 // API: create box
 app.post('/api/boxes', (req, res) => {
-  const { label, old_room, new_room, color, contents, notes } = req.body;
+  const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   if (!label || !old_room || !new_room || !color) {
-    return res.status(400).json({ error: 'label, old_room, new_room, color are required' });
+    return res.status(400).json({ error: 'label, old_room, new_room, color sind Pflichtfelder' });
   }
   const id = uuidv4();
   db.prepare(
-    'INSERT INTO boxes (id, label, old_room, new_room, color, contents, notes) VALUES (?, ?, ?, ?, ?, ?, ?)'
-  ).run(id, label, old_room, new_room, color, contents || '', notes || '');
+    'INSERT INTO boxes (id, label, old_room, new_room, color, teacher, contents, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+  ).run(id, label, old_room, new_room, color, teacher || '', contents || '', notes || '');
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(id);
   res.status(201).json(box);
 });
 
 // API: update box
 app.put('/api/boxes/:id', (req, res) => {
-  const { label, old_room, new_room, color, contents, notes } = req.body;
+  const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
-  if (!box) return res.status(404).json({ error: 'Box not found' });
+  if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   db.prepare(
-    'UPDATE boxes SET label=?, old_room=?, new_room=?, color=?, contents=?, notes=? WHERE id=?'
+    'UPDATE boxes SET label=?, old_room=?, new_room=?, color=?, teacher=?, contents=?, notes=? WHERE id=?'
   ).run(
     label ?? box.label,
     old_room ?? box.old_room,
     new_room ?? box.new_room,
     color ?? box.color,
+    teacher ?? box.teacher,
     contents ?? box.contents,
     notes ?? box.notes,
     req.params.id
@@ -89,7 +96,7 @@ app.put('/api/boxes/:id', (req, res) => {
 // API: delete box
 app.delete('/api/boxes/:id', (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
-  if (!box) return res.status(404).json({ error: 'Box not found' });
+  if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   db.prepare('DELETE FROM boxes WHERE id = ?').run(req.params.id);
   res.json({ ok: true });
 });
@@ -97,7 +104,7 @@ app.delete('/api/boxes/:id', (req, res) => {
 // API: generate QR code as data URL
 app.get('/api/boxes/:id/qr', async (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
-  if (!box) return res.status(404).json({ error: 'Box not found' });
+  if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   const url = `${getBaseUrl(req)}/box/${box.id}`;
   try {
     const qrDataUrl = await QRCode.toDataURL(url, {
@@ -107,7 +114,7 @@ app.get('/api/boxes/:id/qr', async (req, res) => {
     });
     res.json({ qr: qrDataUrl, url });
   } catch (err) {
-    res.status(500).json({ error: 'QR generation failed' });
+    res.status(500).json({ error: 'QR-Generierung fehlgeschlagen' });
   }
 });
 
@@ -117,6 +124,6 @@ app.get('/box/:id', (req, res) => {
 });
 
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Umzug Label App running on port ${PORT}`);
+  console.log(`Berufskolleg Umzug-App läuft auf Port ${PORT}`);
   if (BASE_URL) console.log(`Base URL: ${BASE_URL}`);
 });

@@ -90,6 +90,10 @@ const limitAuth  = makeLimit(10,  15);  // Login-Versuche begrenzen
 
 app.use(express.json());
 
+// Statische Dateien (CSS, JS, Bilder) direkt ausliefern – ohne Auth-Check.
+// index: false verhindert, dass index.html für '/' serviert wird (das macht die Route unten).
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
 // ===== Auth-Hilfsfunktionen =====
 function isFirstRun() {
   return db.prepare('SELECT COUNT(*) as c FROM users').get().c === 0;
@@ -140,8 +144,6 @@ app.get('/setup', (req, res) => {
 app.get('/box/:id', limitScan, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'box.html'));
 });
-
-app.use(express.static(path.join(__dirname, 'public')));
 
 // ===== Helper =====
 function getBaseUrl(req) {

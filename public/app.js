@@ -19,6 +19,7 @@ const COLORS = {
 
 // ===== State =====
 let boxes = [];
+let currentUser = null;
 
 // ===== DOM refs =====
 const form = document.getElementById('box-form');
@@ -38,7 +39,7 @@ const pdfAllBtn = document.getElementById('pdf-all-btn');
 const modalTitle = document.getElementById('modal-title');
 
 // ===== Init =====
-loadBoxes();
+initAuth();
 
 // ===== Events =====
 form.addEventListener('submit', onSubmit);
@@ -48,6 +49,28 @@ modalCloseBtn.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', closeModal);
 cancelEditBtn.addEventListener('click', cancelEdit);
 printAllBtn.addEventListener('click', printAll);
+
+// ===== Auth =====
+async function initAuth() {
+  const res = await fetch('/api/auth/me');
+  if (!res.ok) { window.location.href = '/login'; return; }
+  currentUser = await res.json();
+
+  const actions = document.getElementById('header-actions');
+  if (actions) {
+    const adminLink = currentUser.role === 'admin'
+      ? `<a href="/admin" class="btn btn-outline-white">&#9881; Admin</a>` : '';
+    actions.innerHTML = `
+      <span class="header-user">&#128100; ${escHtml(currentUser.username)}</span>
+      ${adminLink}
+      <button class="btn btn-danger-outline" id="logout-btn">Abmelden</button>`;
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+  }
+  loadBoxes();
+}
 
 // ===== API =====
 async function loadBoxes() {
@@ -274,7 +297,9 @@ function renderList() {
         <div class="box-card-footer">
           <button class="btn btn-sm btn-outline" onclick="printLabel('${box.id}')">🖨 Label</button>
           <button class="btn btn-sm btn-secondary" onclick="editBox('${box.id}')">✏️ Edit</button>
-          <button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑</button>
+          ${currentUser?.role === 'admin'
+            ? `<button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑</button>`
+            : ''}
         </div>
       </div>`;
   }).join('');

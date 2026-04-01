@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin-Panel – Berufskolleg Umzug</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="header-inner">
+      <div class="header-logo">&#9881;&#65039;</div>
+      <div style="flex:1">
+        <h1>Admin-Panel</h1>
+        <p class="subtitle">Benutzerverwaltung – Berufskolleg Umzug</p>
+      </div>
+      <div class="header-actions">
+        <a href="/" class="btn btn-outline-white">&#8592; Zur App</a>
+        <button id="logout-btn" class="btn btn-danger-outline">Abmelden</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Neuen Benutzer anlegen -->
+    <section class="card form-card">
+      <h2>&#10133; Neuen Benutzer anlegen</h2>
+      <form id="user-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="new-username">Benutzername</label>
+            <input type="text" id="new-username" placeholder="z.B. lehrer.mueller" required autocomplete="off">
+          </div>
+          <div class="form-group">
+            <label for="new-role">Rolle</label>
+            <select id="new-role" required>
+              <option value="user">&#128100; Benutzer (kann anlegen &amp; bearbeiten)</option>
+              <option value="admin">&#9881;&#65039; Admin (kann alles inkl. löschen)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="new-password">Passwort <span class="label-hint">(mind. 6 Zeichen)</span></label>
+            <input type="password" id="new-password" placeholder="Passwort" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="new-password2">Passwort wiederholen</label>
+            <input type="password" id="new-password2" placeholder="Passwort bestätigen" required autocomplete="new-password">
+          </div>
+        </div>
+        <div id="user-form-error" class="auth-error hidden"></div>
+        <div id="user-form-success" class="auth-success hidden"></div>
+        <div class="form-buttons">
+          <button type="submit" class="btn btn-primary">&#10003; Benutzer anlegen</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Benutzerliste -->
+    <section class="card">
+      <h2>&#128101; Alle Benutzer (<span id="user-count">0</span>)</h2>
+      <div id="user-list" class="user-table-wrap">
+        <p style="color:#94a3b8;padding:20px 0">Lade Benutzer...</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let currentUserId = null;
+
+    // Auth check
+    fetch('/api/auth/me')
+      .then(r => { if (!r.ok) window.location.href = '/login'; return r.json(); })
+      .then(u => {
+        if (u.role !== 'admin') { window.location.href = '/'; return; }
+        currentUserId = u.id;
+        loadUsers();
+      });
+
+    document.getElementById('logout-btn').addEventListener('click', async () => {
+      await fetch('/api/logout', { method: 'POST' });
+      window.location.href = '/login';
+    });
+
+    async function loadUsers() {
+      const res = await fetch('/api/admin/users');
+      if (!res.ok) return;
+      const users = await res.json();
+      document.getElementById('user-count').textContent = users.length;
+
+      if (!users.length) {
+        document.getElementById('user-list').innerHTML = '<p style="color:#94a3b8;padding:12px 0">Keine Benutzer vorhanden.</p>';
+        return;
+      }
+
+      document.getElementById('user-list').innerHTML = `
+        <table class="user-table">
+          <thead>
+            <tr>
+              <th>Benutzername</th>
+              <th>Rolle</th>
+              <th>Erstellt</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            ${users.map(u => `
+              <tr class="${u.id === currentUserId ? 'row-self' : ''}">
+                <td>
+                  <strong>${escHtml(u.username)}</strong>
+                  ${u.id === currentUserId ? '<span class="badge badge-self">Du</span>' : ''}
+                </td>
+                <td>
+                  <span class="badge ${u.role === 'admin' ? 'badge-admin' : 'badge-user'}">
+                    ${u.role === 'admin' ? '⚙️ Admin' : '👤 Benutzer'}
+                  </span>
+                </td>
+                <td class="cell-muted">${new Date(u.created_at * 1000).toLocaleDateString('de-DE')}</td>
+                <td>
+                  ${u.id !== currentUserId ? `
+                    <button class="btn btn-sm btn-danger" onclick="deleteUser(${u.id}, '${escHtml(u.username)}')">
+                      &#128465; Löschen
+                    </button>` : '<span class="cell-muted">–</span>'}
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>`;
+    }
+
+    async function deleteUser(id, name) {
+      if (!confirm(`Benutzer "${name}" wirklich löschen?`)) return;
+      const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error); return; }
+      loadUsers();
+    }
+
+    document.getElementById('user-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username  = document.getElementById('new-username').value.trim();
+      const password  = document.getElementById('new-password').value;
+      const password2 = document.getElementById('new-password2').value;
+      const role      = document.getElementById('new-role').value;
+      const errEl     = document.getElementById('user-form-error');
+      const okEl      = document.getElementById('user-form-success');
+      errEl.classList.add('hidden');
+      okEl.classList.add('hidden');
+
+      if (password !== password2) {
+        errEl.textContent = 'Passwörter stimmen nicht überein.';
+        errEl.classList.remove('hidden');
+        return;
+      }
+
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role })
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        errEl.textContent = data.error || 'Fehler beim Anlegen.';
+        errEl.classList.remove('hidden');
+      } else {
+        okEl.textContent = `✓ Benutzer "${data.username}" wurde angelegt.`;
+        okEl.classList.remove('hidden');
+        e.target.reset();
+        loadUsers();
+      }
+    });
+
+    function escHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+  </script>
+</body>
+</html>

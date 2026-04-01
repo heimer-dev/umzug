@@ -9,12 +9,15 @@ services:
       - umzug-data:/app/data
     environment:
       PORT: 8080
-      # BASE_URL wird automatisch aus dem Request-Header ermittelt.
-      # Setze diese Variable nur bei Reverse Proxy / eigenem Domain-Namen:
+
+      # WICHTIG: Diesen Wert auf einen langen, zufälligen String setzen!
+      # Beispiel: openssl rand -hex 32
+      SESSION_SECRET: "bitte-aendern-langer-zufaelliger-string"
+
+      # BASE_URL nur bei Reverse Proxy / eigenem Domain-Namen nötig:
       # BASE_URL: "https://umzug.schule.de"
 
-      # IPs / Netz-Präfixe die vom Rate-Limiting ausgenommen sind (Schulnetz).
-      # Komma-getrennt, z.B. internes WLAN + Lehrernetz:
+      # Schulnetz vom Rate-Limiting ausnehmen (komma-getrennte IP-Präfixe):
       # TRUSTED_NETWORKS: "192.168.1.,10.0.0."
 
 volumes:

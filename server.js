@@ -46,7 +46,12 @@ db.exec(`
 // Migrationen
 try { db.exec(`ALTER TABLE boxes ADD COLUMN teacher TEXT DEFAULT ''`); } catch (_) {}
 
-// ===== Sicherheits-Header =====
+// ===== Statische Dateien ZUERST (vor Helmet/Session) =====
+// CSS, JS, Bilder brauchen keine Auth und keine Security-Header.
+// index: false → index.html wird NICHT für '/' ausgeliefert (macht die Route unten).
+app.use(express.static(path.join(__dirname, 'public'), { index: false }));
+
+// ===== Sicherheits-Header (nur für dynamische Seiten) =====
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -55,7 +60,8 @@ app.use(helmet({
       styleSrc:   ["'self'", "'unsafe-inline'"],
       imgSrc:     ["'self'", "data:"],
     }
-  }
+  },
+  crossOriginResourcePolicy: false,   // kein CORP-Header auf CSS/JS blockieren
 }));
 
 // ===== Session =====
@@ -86,13 +92,9 @@ const limitScan  = makeLimit(300, 15);
 const limitRead  = makeLimit(100, 15);
 const limitQr    = makeLimit(60,  15);
 const limitWrite = makeLimit(30,  15);
-const limitAuth  = makeLimit(10,  15);  // Login-Versuche begrenzen
+const limitAuth  = makeLimit(10,  15);
 
 app.use(express.json());
-
-// Statische Dateien (CSS, JS, Bilder) direkt ausliefern – ohne Auth-Check.
-// index: false verhindert, dass index.html für '/' serviert wird (das macht die Route unten).
-app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
 // ===== Auth-Hilfsfunktionen =====
 function isFirstRun() {

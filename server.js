@@ -2,6 +2,8 @@ const express = require('express');
 const Database = require('better-sqlite3');
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
 const path = require('path');
 const fs = require('fs');
 
@@ -35,6 +37,48 @@ try {
   db.exec(`ALTER TABLE boxes ADD COLUMN teacher TEXT DEFAULT ''`);
 } catch (_) { /* column already exists */ }
 
+// ===== Sicherheits-Header =====
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc:  ["'self'", "'unsafe-inline'"],  // inline scripts in box.html
+      styleSrc:   ["'self'", "'unsafe-inline'"],
+      imgSrc:     ["'self'", "data:"],             // QR-Code data-URLs
+    }
+  }
+}));
+
+// ===== Rate Limiting =====
+// Interne Netze (Schule, Büro) vom Limit ausnehmen
+const TRUSTED_NETWORKS = (process.env.TRUSTED_NETWORKS || '')
+  .split(',').map(s => s.trim()).filter(Boolean);
+
+function isTrusted(ip) {
+  if (!TRUSTED_NETWORKS.length) return false;
+  return TRUSTED_NETWORKS.some(net => ip.startsWith(net));
+}
+
+function makeLimit(max, windowMin) {
+  return rateLimit({
+    windowMs: windowMin * 60 * 1000,
+    max,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skip: (req) => isTrusted(req.ip),
+    message: { error: 'Zu viele Anfragen – bitte kurz warten.' }
+  });
+}
+
+// QR-Scans: Träger scannt viele Kisten am Tag → grosszügig
+const limitScan   = makeLimit(300, 15);   // 300 Scans / 15 Min
+// Übersicht & Daten lesen
+const limitRead   = makeLimit(100, 15);   // 100 Req  / 15 Min
+// QR-Code generieren (CPU-intensiver)
+const limitQr     = makeLimit(60,  15);   //  60 Req  / 15 Min
+// Schreiben: nur Lehrer/Admin legen Kisten an
+const limitWrite  = makeLimit(30,  15);   //  30 Req  / 15 Min
+
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
@@ -47,20 +91,20 @@ function getBaseUrl(req) {
 }
 
 // API: list all boxes
-app.get('/api/boxes', (req, res) => {
+app.get('/api/boxes', limitRead, (req, res) => {
   const boxes = db.prepare('SELECT * FROM boxes ORDER BY created_at DESC').all();
   res.json(boxes);
 });
 
 // API: get single box
-app.get('/api/boxes/:id', (req, res) => {
+app.get('/api/boxes/:id', limitScan, (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   res.json(box);
 });
 
 // API: create box
-app.post('/api/boxes', (req, res) => {
+app.post('/api/boxes', limitWrite, (req, res) => {
   const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   if (!label || !old_room || !new_room || !color) {
     return res.status(400).json({ error: 'label, old_room, new_room, color sind Pflichtfelder' });
@@ -74,7 +118,7 @@ app.post('/api/boxes', (req, res) => {
 });
 
 // API: update box
-app.put('/api/boxes/:id', (req, res) => {
+app.put('/api/boxes/:id', limitWrite, (req, res) => {
   const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
@@ -94,7 +138,7 @@ app.put('/api/boxes/:id', (req, res) => {
 });
 
 // API: delete box
-app.delete('/api/boxes/:id', (req, res) => {
+app.delete('/api/boxes/:id', limitWrite, (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   db.prepare('DELETE FROM boxes WHERE id = ?').run(req.params.id);
@@ -102,7 +146,7 @@ app.delete('/api/boxes/:id', (req, res) => {
 });
 
 // API: generate QR code as data URL
-app.get('/api/boxes/:id/qr', async (req, res) => {
+app.get('/api/boxes/:id/qr', limitQr, async (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   const url = `${getBaseUrl(req)}/box/${box.id}`;
@@ -119,7 +163,7 @@ app.get('/api/boxes/:id/qr', async (req, res) => {
 });
 
 // Box detail page (for QR scan)
-app.get('/box/:id', (req, res) => {
+app.get('/box/:id', limitScan, (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'box.html'));
 });
 

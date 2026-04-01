@@ -10,13 +10,12 @@ services:
     environment:
       PORT: 8080
       # BASE_URL wird automatisch aus dem Request-Header ermittelt.
-      # Setze diese Variable nur, wenn die automatische Erkennung nicht funktioniert,
-      # z.B. hinter einem Reverse Proxy mit eigenem Domain-Namen:
-      #
-      # BASE_URL: "https://umzug.meinedomain.de"
-      #
-      # Oder mit IP-Adresse (Port weglassen wenn Standard 80/443):
-      # BASE_URL: "http://192.168.1.100:8080"
+      # Setze diese Variable nur bei Reverse Proxy / eigenem Domain-Namen:
+      # BASE_URL: "https://umzug.schule.de"
+
+      # IPs / Netz-Präfixe die vom Rate-Limiting ausgenommen sind (Schulnetz).
+      # Komma-getrennt, z.B. internes WLAN + Lehrernetz:
+      # TRUSTED_NETWORKS: "192.168.1.,10.0.0."
 
 volumes:
   umzug-data:

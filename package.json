@@ -1,0 +1,15 @@
+{
+  "name": "umzug-labels",
+  "version": "1.0.0",
+  "description": "QR Code Labels for moving boxes",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.4.3",
+    "express": "^4.18.2",
+    "qrcode": "^1.5.3",
+    "uuid": "^9.0.0"
+  }
+}

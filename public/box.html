@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Karton Details</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="box-detail-page">
+  <div id="detail-loading" class="detail-loading">
+    <div class="spinner"></div>
+    <p>Lade Karton-Daten...</p>
+  </div>
+
+  <div id="detail-content" class="hidden">
+    <div id="detail-banner" class="detail-banner">
+      <div class="detail-banner-inner">
+        <div class="detail-icon" id="detail-icon"></div>
+        <div>
+          <h1 id="detail-label"></h1>
+          <p class="detail-room-tag" id="detail-room-tag"></p>
+        </div>
+      </div>
+    </div>
+
+    <main class="detail-main">
+      <div class="detail-cards">
+        <div class="detail-card">
+          <div class="detail-card-label">&#128194; Kommt aus</div>
+          <div class="detail-card-value" id="detail-old-room"></div>
+        </div>
+        <div class="detail-card arrow-card">&#8594;</div>
+        <div class="detail-card">
+          <div class="detail-card-label">&#127968; Geht nach</div>
+          <div class="detail-card-value" id="detail-new-room"></div>
+        </div>
+      </div>
+
+      <div class="detail-section" id="contents-section">
+        <h2>&#128230; Inhalt</h2>
+        <ul id="detail-contents" class="contents-list"></ul>
+      </div>
+
+      <div class="detail-section" id="notes-section">
+        <h2>&#9888;&#65039; Hinweise</h2>
+        <p id="detail-notes" class="detail-notes-text"></p>
+      </div>
+
+      <div class="detail-footer">
+        <a href="/" class="btn btn-outline">&#8592; Zur Übersicht</a>
+      </div>
+    </main>
+  </div>
+
+  <div id="detail-error" class="hidden detail-error">
+    <div class="error-icon">&#10060;</div>
+    <h2>Karton nicht gefunden</h2>
+    <p>Dieser QR-Code ist nicht mehr gültig oder der Karton wurde gelöscht.</p>
+    <a href="/" class="btn btn-primary">&#8592; Zur Übersicht</a>
+  </div>
+
+  <script>
+    const COLORS = {
+      wohnzimmer:   { bg: '#3B82F6', icon: '&#127968;', name: 'Wohnzimmer' },
+      schlafzimmer: { bg: '#8B5CF6', icon: '&#128716;', name: 'Schlafzimmer' },
+      kueche:       { bg: '#F97316', icon: '&#127859;', name: 'Küche' },
+      bad:          { bg: '#06B6D4', icon: '&#128704;', name: 'Bad' },
+      kinderzimmer: { bg: '#22C55E', icon: '&#129981;', name: 'Kinderzimmer' },
+      buero:        { bg: '#EAB308', icon: '&#128188;', name: 'Büro / Arbeitszimmer' },
+      keller:       { bg: '#6B7280', icon: '&#128348;', name: 'Keller / Lager' },
+      dachboden:    { bg: '#A16207', icon: '&#127968;', name: 'Dachboden' },
+      flur:         { bg: '#EC4899', icon: '&#128682;', name: 'Flur / Eingang' },
+      sonstiges:    { bg: '#64748B', icon: '&#128230;', name: 'Sonstiges' },
+    };
+
+    const id = location.pathname.replace('/box/', '').replace(/\/$/, '');
+
+    fetch(`/api/boxes/${id}`)
+      .then(r => { if (!r.ok) throw new Error('Not found'); return r.json(); })
+      .then(box => {
+        document.getElementById('detail-loading').classList.add('hidden');
+        document.getElementById('detail-content').classList.remove('hidden');
+
+        const c = COLORS[box.color] || COLORS.sonstiges;
+        document.getElementById('detail-banner').style.background = c.bg;
+        document.getElementById('detail-icon').innerHTML = c.icon;
+        document.getElementById('detail-label').textContent = box.label;
+        document.getElementById('detail-room-tag').textContent = c.name;
+        document.getElementById('detail-old-room').textContent = box.old_room;
+        document.getElementById('detail-new-room').textContent = box.new_room;
+        document.title = box.label + ' – Umzug';
+
+        const contentsList = document.getElementById('detail-contents');
+        const contentsSection = document.getElementById('contents-section');
+        if (box.contents && box.contents.trim()) {
+          box.contents.split('\n').filter(l => l.trim()).forEach(line => {
+            const li = document.createElement('li');
+            li.textContent = line.trim();
+            contentsList.appendChild(li);
+          });
+        } else {
+          contentsSection.style.display = 'none';
+        }
+
+        const notesEl = document.getElementById('detail-notes');
+        const notesSection = document.getElementById('notes-section');
+        if (box.notes && box.notes.trim()) {
+          notesEl.textContent = box.notes;
+        } else {
+          notesSection.style.display = 'none';
+        }
+      })
+      .catch(() => {
+        document.getElementById('detail-loading').classList.add('hidden');
+        document.getElementById('detail-error').classList.remove('hidden');
+      });
+  </script>
+</body>
+</html>

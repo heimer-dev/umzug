@@ -29,24 +29,20 @@
         <div class="form-row">
           <div class="form-group">
             <label for="new-username">Benutzername</label>
-            <input type="text" id="new-username" placeholder="z.B. lehrer.mueller" required autocomplete="off">
+            <input type="text" id="new-username" placeholder="z.B. frau.mueller" required autocomplete="off">
           </div>
-          <div class="form-group">
-            <label for="new-role">Rolle</label>
-            <select id="new-role" required>
-              <option value="user">&#128100; Benutzer (kann anlegen &amp; bearbeiten)</option>
-              <option value="admin">&#9881;&#65039; Admin (kann alles inkl. löschen)</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row">
           <div class="form-group">
             <label for="new-password">Passwort <span class="label-hint">(mind. 6 Zeichen)</span></label>
             <input type="password" id="new-password" placeholder="Passwort" required autocomplete="new-password">
           </div>
+        </div>
+        <div class="form-row">
           <div class="form-group">
             <label for="new-password2">Passwort wiederholen</label>
             <input type="password" id="new-password2" placeholder="Passwort bestätigen" required autocomplete="new-password">
+          </div>
+          <div class="form-group" style="display:flex;align-items:flex-end;padding-bottom:2px">
+            <span class="badge badge-admin" style="font-size:0.85rem;padding:8px 14px">&#9881;&#65039; Rolle: Admin</span>
           </div>
         </div>
         <div id="user-form-error" class="auth-error hidden"></div>
@@ -142,7 +138,6 @@
       const username  = document.getElementById('new-username').value.trim();
       const password  = document.getElementById('new-password').value;
       const password2 = document.getElementById('new-password2').value;
-      const role      = document.getElementById('new-role').value;
       const errEl     = document.getElementById('user-form-error');
       const okEl      = document.getElementById('user-form-success');
       errEl.classList.add('hidden');
@@ -157,7 +152,7 @@
       const res = await fetch('/api/admin/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password, role })
+        body: JSON.stringify({ username, password })
       });
       const data = await res.json();
 

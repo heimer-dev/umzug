@@ -53,24 +53,26 @@ printAllBtn.addEventListener('click', printAll);
 // ===== Auth =====
 async function initAuth() {
   const res = await fetch('/api/auth/me');
-  if (!res.ok) { window.location.href = '/login'; return; }
-  currentUser = await res.json();
+  if (res.ok) currentUser = await res.json();
 
   const actions = document.getElementById('header-actions');
   if (actions) {
-    const adminLink = currentUser.role === 'admin'
-      ? `<a href="/admin" class="btn btn-outline-white">&#9881; Admin</a>` : '';
-    actions.innerHTML = `
-      <span class="header-user">&#128100; ${escHtml(currentUser.username)}</span>
-      ${adminLink}
-      <button class="btn btn-danger-outline" id="logout-btn">Abmelden</button>`;
-    document.getElementById('logout-btn').addEventListener('click', async () => {
-      await fetch('/api/logout', { method: 'POST' });
-      window.location.href = '/login';
-    });
+    if (currentUser) {
+      actions.innerHTML = `
+        <span class="header-user">&#9881; ${escHtml(currentUser.username)}</span>
+        <a href="/admin" class="btn btn-outline-white">Admin-Panel</a>
+        <button class="btn btn-danger-outline" id="logout-btn">Abmelden</button>`;
+      document.getElementById('logout-btn').addEventListener('click', async () => {
+        await fetch('/api/logout', { method: 'POST' });
+        window.location.href = '/';
+      });
+    } else {
+      actions.innerHTML = `<a href="/login" class="btn btn-outline-white">&#128274; Admin-Login</a>`;
+    }
   }
+
   // Formular und Schreib-Aktionen nur für Admins
-  if (currentUser.role !== 'admin') {
+  if (!currentUser) {
     document.querySelector('.form-card').style.display = 'none';
     document.getElementById('print-all-btn').style.display = 'none';
   }

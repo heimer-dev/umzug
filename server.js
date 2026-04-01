@@ -117,7 +117,7 @@ function requireApiAdmin(req, res, next) {
 }
 
 // ===== HTML-Seiten (VOR express.static, damit Auth greift) =====
-app.get('/', requireAuth, (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
@@ -191,15 +191,13 @@ app.get('/api/admin/users', requireApiAuth, requireApiAdmin, (req, res) => {
 });
 
 app.post('/api/admin/users', requireApiAuth, requireApiAdmin, limitWrite, async (req, res) => {
-  const { username, password, role } = req.body;
+  const { username, password } = req.body;
   if (!username?.trim() || !password || password.length < 6)
     return res.status(400).json({ error: 'Benutzername und Passwort (mind. 6 Zeichen) erforderlich' });
-  if (!['admin', 'user'].includes(role))
-    return res.status(400).json({ error: 'Ungültige Rolle' });
   if (db.prepare('SELECT id FROM users WHERE username = ?').get(username.trim()))
     return res.status(409).json({ error: 'Benutzername bereits vergeben' });
   const hash = await bcrypt.hash(password, 12);
-  const info = db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username.trim(), hash, role);
+  const info = db.prepare('INSERT INTO users (username, password_hash, role) VALUES (?, ?, ?)').run(username.trim(), hash, 'admin');
   const user = db.prepare('SELECT id, username, role, created_at FROM users WHERE id = ?').get(info.lastInsertRowid);
   res.status(201).json(user);
 });
@@ -215,7 +213,7 @@ app.delete('/api/admin/users/:id', requireApiAuth, requireApiAdmin, limitWrite, 
 });
 
 // ===== Kisten-API =====
-app.get('/api/boxes', requireApiAuth, limitRead, (req, res) => {
+app.get('/api/boxes', limitRead, (req, res) => {
   const boxes = db.prepare('SELECT * FROM boxes ORDER BY created_at DESC').all();
   res.json(boxes);
 });
@@ -257,7 +255,7 @@ app.delete('/api/boxes/:id', requireApiAuth, requireApiAdmin, limitWrite, (req, 
 });
 
 // ===== QR-Code & PDF =====
-app.get('/api/boxes/:id/qr', requireApiAuth, limitQr, async (req, res) => {
+app.get('/api/boxes/:id/qr', limitQr, async (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
   const url = `${getBaseUrl(req)}/box/${box.id}`;
@@ -291,7 +289,7 @@ function hexToRgb(hex) {
   return [parseInt(hex.slice(1,3),16), parseInt(hex.slice(3,5),16), parseInt(hex.slice(5,7),16)];
 }
 
-app.get('/api/boxes/:id/pdf', requireApiAuth, limitQr, async (req, res) => {
+app.get('/api/boxes/:id/pdf', limitQr, async (req, res) => {
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });
 

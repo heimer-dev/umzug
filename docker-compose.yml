@@ -4,11 +4,11 @@ services:
     container_name: umzug-labels
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "8080:8080"
     volumes:
       - umzug-data:/app/data
     environment:
-      PORT: 3000
+      PORT: 8080
       # BASE_URL wird automatisch aus dem Request-Header ermittelt.
       # Setze diese Variable nur, wenn die automatische Erkennung nicht funktioniert,
       # z.B. hinter einem Reverse Proxy mit eigenem Domain-Namen:
@@ -16,7 +16,7 @@ services:
       # BASE_URL: "https://umzug.meinedomain.de"
       #
       # Oder mit IP-Adresse (Port weglassen wenn Standard 80/443):
-      # BASE_URL: "http://192.168.1.100:3000"
+      # BASE_URL: "http://192.168.1.100:8080"
 
 volumes:
   umzug-data:

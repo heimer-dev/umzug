@@ -227,7 +227,7 @@ app.get('/api/boxes/:id', limitScan, (req, res) => {
   res.json(box);
 });
 
-app.post('/api/boxes', requireApiAuth, limitWrite, (req, res) => {
+app.post('/api/boxes', requireApiAuth, requireApiAdmin, limitWrite, (req, res) => {
   const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   if (!label || !old_room || !new_room || !color)
     return res.status(400).json({ error: 'label, old_room, new_room, color sind Pflichtfelder' });
@@ -237,7 +237,7 @@ app.post('/api/boxes', requireApiAuth, limitWrite, (req, res) => {
   res.status(201).json(db.prepare('SELECT * FROM boxes WHERE id = ?').get(id));
 });
 
-app.put('/api/boxes/:id', requireApiAuth, limitWrite, (req, res) => {
+app.put('/api/boxes/:id', requireApiAuth, requireApiAdmin, limitWrite, (req, res) => {
   const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   const box = db.prepare('SELECT * FROM boxes WHERE id = ?').get(req.params.id);
   if (!box) return res.status(404).json({ error: 'Kiste nicht gefunden' });

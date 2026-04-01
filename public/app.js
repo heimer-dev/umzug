@@ -69,6 +69,11 @@ async function initAuth() {
       window.location.href = '/login';
     });
   }
+  // Formular und Schreib-Aktionen nur für Admins
+  if (currentUser.role !== 'admin') {
+    document.querySelector('.form-card').style.display = 'none';
+    document.getElementById('print-all-btn').style.display = 'none';
+  }
   loadBoxes();
 }
 
@@ -296,10 +301,10 @@ function renderList() {
         </div>
         <div class="box-card-footer">
           <button class="btn btn-sm btn-outline" onclick="printLabel('${box.id}')">🖨 Label</button>
-          <button class="btn btn-sm btn-secondary" onclick="editBox('${box.id}')">✏️ Edit</button>
-          ${currentUser?.role === 'admin'
-            ? `<button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑</button>`
-            : ''}
+          ${currentUser?.role === 'admin' ? `
+            <button class="btn btn-sm btn-secondary" onclick="editBox('${box.id}')">✏️ Edit</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteBox('${box.id}')">🗑</button>
+          ` : ''}
         </div>
       </div>`;
   }).join('');

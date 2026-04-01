@@ -225,7 +225,7 @@ app.get('/api/boxes/:id', limitScan, (req, res) => {
   res.json(box);
 });
 
-app.post('/api/boxes', requireApiAuth, requireApiAdmin, limitWrite, (req, res) => {
+app.post('/api/boxes', limitWrite, (req, res) => {
   const { label, old_room, new_room, color, teacher, contents, notes } = req.body;
   if (!label || !old_room || !new_room || !color)
     return res.status(400).json({ error: 'label, old_room, new_room, color sind Pflichtfelder' });

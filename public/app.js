@@ -71,9 +71,8 @@ async function initAuth() {
     }
   }
 
-  // Formular und Schreib-Aktionen nur für Admins
+  // Alle drucken nur für Admins (da Edit/Löschen dran hängt)
   if (!currentUser) {
-    document.querySelector('.form-card').style.display = 'none';
     document.getElementById('print-all-btn').style.display = 'none';
   }
   loadBoxes();

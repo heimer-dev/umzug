@@ -5,21 +5,10 @@ services:
     restart: unless-stopped
     ports:
       - "8080:8080"
-    volumes:
-      - umzug-data:/app/data
     environment:
       PORT: 8080
-
-      # WICHTIG: Diesen Wert auf einen langen, zufälligen String setzen!
-      # Beispiel: openssl rand -hex 32
       SESSION_SECRET: "90bf528249fdc7c5592d3f832026c04773b68d0eec2714aea6935011db7096dc"
-
       # BASE_URL nur bei Reverse Proxy / eigenem Domain-Namen nötig:
       # BASE_URL: "https://umzug.schule.de"
-
       # Schulnetz vom Rate-Limiting ausnehmen (komma-getrennte IP-Präfixe):
       # TRUSTED_NETWORKS: "192.168.1.,10.0.0."
-
-volumes:
-  umzug-data:
-    driver: local

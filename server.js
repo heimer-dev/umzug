@@ -46,22 +46,22 @@ db.exec(`
 // Migrationen
 try { db.exec(`ALTER TABLE boxes ADD COLUMN teacher TEXT DEFAULT ''`); } catch (_) {}
 
-// ===== Statische Dateien ZUERST (vor Helmet/Session) =====
-// CSS, JS, Bilder brauchen keine Auth und keine Security-Header.
-// index: false → index.html wird NICHT für '/' ausgeliefert (macht die Route unten).
+// ===== Statische Dateien – explizite Routen + static Fallback =====
+// Explizit vor allem anderen, kein Middleware-Stack dazwischen.
+app.get('/style.css', (_req, res) => {
+  res.setHeader('Content-Type', 'text/css; charset=utf-8');
+  res.sendFile(path.join(__dirname, 'public', 'style.css'));
+});
+app.get('/app.js', (_req, res) => {
+  res.setHeader('Content-Type', 'application/javascript; charset=utf-8');
+  res.sendFile(path.join(__dirname, 'public', 'app.js'));
+});
 app.use(express.static(path.join(__dirname, 'public'), { index: false }));
 
-// ===== Sicherheits-Header (nur für dynamische Seiten) =====
+// ===== Sicherheits-Header =====
 app.use(helmet({
-  contentSecurityPolicy: {
-    directives: {
-      defaultSrc: ["'self'"],
-      scriptSrc:  ["'self'", "'unsafe-inline'"],
-      styleSrc:   ["'self'", "'unsafe-inline'"],
-      imgSrc:     ["'self'", "data:"],
-    }
-  },
-  crossOriginResourcePolicy: false,   // kein CORP-Header auf CSS/JS blockieren
+  contentSecurityPolicy: false,        // CSP deaktiviert – blockierte CSS/JS
+  crossOriginResourcePolicy: false,
 }));
 
 // ===== Session =====
